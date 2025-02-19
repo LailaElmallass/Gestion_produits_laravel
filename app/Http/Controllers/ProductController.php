@@ -6,6 +6,7 @@ use App\Models\Category;
 use App\Models\Product;
 use App\Http\Requests\ProductRequest;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class ProductController extends Controller
 {
@@ -19,7 +20,7 @@ class ProductController extends Controller
         if ($search) {
             $products = Product::with('category')
                 ->where('intitule', 'like', '%' . $search . '%') // Filter products by name (intitule)
-                ->paginate(10);
+                ->paginate(6);
         } else {
             // If no search query, display all products
             $products = Product::with('category')->paginate(6);
@@ -27,7 +28,6 @@ class ProductController extends Controller
 
         return view('products.index', compact('products', 'search'));
     }
-    
 
     // Affiche le formulaire de création de produit
     public function create()
@@ -39,18 +39,16 @@ class ProductController extends Controller
     // Traite la soumission du formulaire pour ajouter un produit
     public function store(ProductRequest $request)
     {
-        // Validation et traitement de l'image et des autres champs
         $validated = $request->validated();
-
-        // Check if there is an image in the request
+        
         if ($request->hasFile('photo')) {
+            // Store image in 'storage/app/public/images' directory
             $imagePath = $request->file('photo')->store('images', 'public');
-            $validated['photo'] = $imagePath;
+            $validated['image'] = $imagePath;
         }
-
-        // Create the product
-        Product::create($validated);
-
+        
+        Product::create($validated);  // Create the product in the database
+        
         return redirect()->route('products.index')->with('success', 'Produit ajouté avec succès!');
     }
 
@@ -74,13 +72,13 @@ class ProductController extends Controller
         // Vérifier si une nouvelle image a été téléchargée
         if ($request->hasFile('photo')) {
             // Supprimer l'ancienne image si elle existe
-            if ($product->photo) {
-                Storage::disk('public')->delete($product->photo);
+            if ($product->image) {
+                Storage::disk('public')->delete($product->image);
             }
 
             // Stocker la nouvelle image
             $imagePath = $request->file('photo')->store('images', 'public');
-            $validated['photo'] = $imagePath;
+            $validated['image'] = $imagePath;
         }
 
         // Met à jour les informations du produit
@@ -95,8 +93,8 @@ class ProductController extends Controller
         $product = Product::findOrFail($id);  // Trouve le produit par son ID
 
         // Supprimer l'image associée du stockage
-        if ($product->photo) {
-            Storage::disk('public')->delete($product->photo);
+        if ($product->image) {
+            Storage::disk('public')->delete($product->image);
         }
 
         // Supprimer le produit de la base de données

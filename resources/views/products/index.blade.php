@@ -23,15 +23,16 @@
             <div class="input-group">
                 <input type="text" class="form-control" name="search" placeholder="Rechercher par intitulé" value="{{ request('search') }}">
                 <button class="btn btn-primary" type="submit">Rechercher</button>
+                 <!-- Refresh Button (with icon) -->
+                <form action="{{ route('products.index') }}" method="GET" class="mb-4">
+                    <button type="submit" class="btn btn-secondary">
+                        <i class="fas fa-sync-alt"></i> 
+                    </button>
+                </form>
             </div>
         </form>
 
-        <!-- Refresh Button (with icon) -->
-        <form action="{{ route('products.index') }}" method="GET" class="mb-4">
-            <button type="submit" class="btn btn-secondary">
-                <i class="fas fa-sync-alt"></i> Réinitialiser la recherche
-            </button>
-        </form>
+       
 
         <table class="table">
             <thead>
@@ -40,6 +41,7 @@
                     <th>Nom du Produit</th>
                     <th>Prix</th>
                     <th>Catégorie</th>
+                    <th>Image</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -50,6 +52,14 @@
                         <td>{{ $product->intitule }}</td>
                         <td>{{ $product->prix }}</td>
                         <td>{{ $product->category ? $product->category->intitule : 'Non défini' }}</td>
+                        <td>
+                            @if($product->image)
+                                <img src="{{ asset('storage/' . $product->image) }}" alt="Image de {{ $product->intitule }}" class="img-thumbnail" width="100">
+                            @else
+                                <p>No image available</p>
+                            @endif
+
+                        </td>
                         <td>
                             <a href="{{ route('products.edit', $product->id) }}" class="btn btn-primary">Modifier</a>
                             <form action="{{ route('products.destroy', $product->id) }}" method="POST" style="display:inline;">
