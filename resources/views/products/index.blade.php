@@ -1,51 +1,48 @@
 @extends('layouts.app')
 
 @section('content')
-    <div class="container">
-        <h1>Liste des Produits</h1>
+    <div class="container mt-5">
+        <h1 class="header text-center mb-4">Gestion des Produits</h1>
 
-        <!-- Display success message if it exists -->
+        <!-- Success Message -->
         @if(session('success'))
             <div class="alert alert-success">
                 {{ session('success') }}
             </div>
         @endif
 
-        <!-- Create Button -->
-        <div class="mb-4">
-            <a href="{{ route('products.create') }}" class="btn btn-success">
+       <!-- Add Product Button and Search Form -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <!-- Add Product Button -->
+            <a href="{{ route('products.create') }}" class="btn btn-success btn-sm p-2">
                 <i class="fas fa-plus"></i> Créer un Produit
             </a>
+
+            <!-- Search Form -->
+            <form action="{{ route('products.index') }}" method="GET" class="form-inline ml-3">
+                <div class="input-group">
+                    <input type="text" class="form-control" name="search" placeholder="Rechercher par intitulé" value="{{ request('search') }}">
+                    <select name="category" class="form-control ml-2">
+                        <option value="">Toutes les catégories</option>
+                        @foreach($categories as $category)
+                            <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
+                                {{ $category->intitule }}
+                            </option>
+                        @endforeach
+                    </select>
+                    <button type="submit" class="btn btn-primary ml-2">
+                        <i class="fas fa-search"></i> Chercher
+                    </button>
+                </div>
+            </form>
         </div>
 
-        <!-- Search Form -->
-        <form action="{{ route('products.index') }}" method="GET" class="mb-4">
-            <div class="input-group">
-                <input type="text" class="form-control" name="search" placeholder="Rechercher par intitulé" value="{{ request('search') }}">
-                <select name="category" class="form-control">
-                    <option value="">Toutes les catégories</option>
-                    @foreach($categories as $category)
-                        <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
-                            {{ $category->intitule }}
-                        </option>
-                    @endforeach
-                </select>
-                <button class="btn btn-primary" type="submit">chercher</button>
-            </div>
-        </form>
-        
 
-       <!-- Refresh Button (with icon) -->
-       <form action="{{ route('products.index') }}" method="GET" class="mb-4">
-            <button type="submit" class="btn btn-secondary">
-                <i class="fas fa-sync-alt"></i> 
-            </button>
-        </form>
-
-        <table class="table">
-            <thead>
+        <!-- Product Table -->
+        <table class="table table-striped table-bordered">
+            <thead class="thead-dark">
                 <tr>
-                    <th>#</th>
+                    <th>ID</th>
                     <th>Nom du Produit</th>
                     <th>Prix</th>
                     <th>Catégorie</th>
@@ -58,22 +55,25 @@
                     <tr>
                         <td>{{ $product->id }}</td>
                         <td>{{ $product->intitule }}</td>
-                        <td>{{ $product->prix }}</td>
+                        <td>{{ $product->prix }} €</td>
                         <td>{{ $product->category ? $product->category->intitule : 'Non défini' }}</td>
                         <td>
                             @if($product->image)
-                                <img src="{{ asset('storage/' . $product->image) }}" alt="Image de {{ $product->intitule }}" class="img-thumbnail" width="100">
+                                <img src="{{ asset('storage/' . $product->image) }}" alt="{{ $product->intitule }}" class="img-thumbnail" width="100">
                             @else
-                                <p>No image available</p>
+                                <p>No image</p>
                             @endif
-
                         </td>
                         <td>
-                            <a href="{{ route('products.edit', $product->id) }}" class="btn btn-primary">Modifier</a>
-                            <form action="{{ route('products.destroy', $product->id) }}" method="POST" style="display:inline;">
+                            <a href="{{ route('products.edit', $product->id) }}" class="btn btn-warning btn-sm">
+                                <i class="fas fa-edit"></i> 
+                            </a>
+                            <form action="{{ route('products.destroy', $product->id) }}" method="POST" class="d-inline-block">
                                 @csrf
                                 @method('DELETE')
-                                <button type="submit" class="btn btn-danger">Supprimer</button>
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <i class="fas fa-trash"></i> 
+                                </button>
                             </form>
                         </td>
                     </tr>
@@ -81,35 +81,9 @@
             </tbody>
         </table>
 
-        <!-- Pagination links -->
-        <div class="d-flex justify-content-center">
-            {{ $products->links() }}  <!-- Display pagination links -->
+        <!-- Pagination -->
+        <div class="d-flex justify-content-around">
+            {{ $products->links() }}
         </div>
-        <div class="d-flex justify-content-center">
-            @if ($products->hasPages())
-                <ul class="pagination">
-                    {{-- Previous Page Link --}}
-                    <li class="page-item {{ $products->onFirstPage() ? 'disabled' : '' }}">
-                        <a class="page-link" href="{{ $products->previousPageUrl() }}" aria-label="Previous">
-                            &laquo;
-                        </a>
-                    </li>
-        
-                    {{-- Pagination Elements --}}
-                    @foreach ($products->links() as $link)
-                        <li class="page-item"><a class="page-link" href="{{ $link['url'] }}">{{ $link['label'] }}</a></li>
-                    @endforeach
-        
-                    {{-- Next Page Link --}}
-                    <li class="page-item {{ $products->hasMorePages() ? '' : 'disabled' }}">
-                        <a class="page-link" href="{{ $products->nextPageUrl() }}" aria-label="Next">
-                            &raquo;
-                        </a>
-                    </li>
-                </ul>
-            @endif
-        </div>
-        
-        
     </div>
 @endsection
