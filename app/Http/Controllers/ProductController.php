@@ -13,24 +13,25 @@ class ProductController extends Controller
     // Affiche la liste des produits
     public function index(Request $request)
     {
-        // Retrieve the 'search' query parameter from the request
         $search = $request->input('search');
+        $categoryId = $request->input('category');
     
-        // If there is a search query, filter products by 'intitule'
-        if ($search) {
-            $products = Product::with('category')
-                ->where('intitule', 'like', '%' . $search . '%')
-                ->paginate(6);
-        } else {
-            // If no search query, display all products
-            $products = Product::with('category')->paginate(6);
-        }
+        $products = Product::with('category')
+            ->when($search, function($query) use ($search) {
+                return $query->where('intitule', 'like', '%' . $search . '%');
+            })
+            ->when($categoryId, function($query) use ($categoryId) {
+                return $query->where('cat_id', $categoryId);
+            })
+            ->paginate(5);  // Make sure you use paginate() and not get()
     
-        // Fetch categories to use in the view
-        $categories = Category::all();  // Retrieve all categories
+        $categories = Category::all();
     
         return view('products.index', compact('products', 'search', 'categories'));
     }
+    
+    
+
     
 
     // Affiche le formulaire de création de produit

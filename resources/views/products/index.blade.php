@@ -22,17 +22,25 @@
         <form action="{{ route('products.index') }}" method="GET" class="mb-4">
             <div class="input-group">
                 <input type="text" class="form-control" name="search" placeholder="Rechercher par intitulé" value="{{ request('search') }}">
-                <button class="btn btn-primary" type="submit">Rechercher</button>
-                 <!-- Refresh Button (with icon) -->
-                <form action="{{ route('products.index') }}" method="GET" class="mb-4">
-                    <button type="submit" class="btn btn-secondary">
-                        <i class="fas fa-sync-alt"></i> 
-                    </button>
-                </form>
+                <select name="category" class="form-control">
+                    <option value="">Toutes les catégories</option>
+                    @foreach($categories as $category)
+                        <option value="{{ $category->id }}" {{ request('category') == $category->id ? 'selected' : '' }}>
+                            {{ $category->intitule }}
+                        </option>
+                    @endforeach
+                </select>
+                <button class="btn btn-primary" type="submit">chercher</button>
             </div>
         </form>
+        
 
-       
+       <!-- Refresh Button (with icon) -->
+       <form action="{{ route('products.index') }}" method="GET" class="mb-4">
+            <button type="submit" class="btn btn-secondary">
+                <i class="fas fa-sync-alt"></i> 
+            </button>
+        </form>
 
         <table class="table">
             <thead>
@@ -77,5 +85,31 @@
         <div class="d-flex justify-content-center">
             {{ $products->links() }}  <!-- Display pagination links -->
         </div>
+        <div class="d-flex justify-content-center">
+            @if ($products->hasPages())
+                <ul class="pagination">
+                    {{-- Previous Page Link --}}
+                    <li class="page-item {{ $products->onFirstPage() ? 'disabled' : '' }}">
+                        <a class="page-link" href="{{ $products->previousPageUrl() }}" aria-label="Previous">
+                            &laquo;
+                        </a>
+                    </li>
+        
+                    {{-- Pagination Elements --}}
+                    @foreach ($products->links() as $link)
+                        <li class="page-item"><a class="page-link" href="{{ $link['url'] }}">{{ $link['label'] }}</a></li>
+                    @endforeach
+        
+                    {{-- Next Page Link --}}
+                    <li class="page-item {{ $products->hasMorePages() ? '' : 'disabled' }}">
+                        <a class="page-link" href="{{ $products->nextPageUrl() }}" aria-label="Next">
+                            &raquo;
+                        </a>
+                    </li>
+                </ul>
+            @endif
+        </div>
+        
+        
     </div>
 @endsection
