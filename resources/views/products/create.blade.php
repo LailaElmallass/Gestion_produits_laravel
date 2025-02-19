@@ -18,11 +18,13 @@
         </div>
         <div class="mb-3">
             <label for="category" class="form-label">Catégorie</label>
-            <select class="form-control" id="category" name="cat_id">
-                @foreach ($categories as $category)
+            <select class="form-control" name="cat_id" required>
+                <option value="">Select Category</option>
+                @foreach($categories as $category)
                     <option value="{{ $category->id }}">{{ $category->intitule }}</option>
                 @endforeach
             </select>
+            
         </div>
         <button type="submit" class="btn btn-primary">Enregistrer</button>
     </form>

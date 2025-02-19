@@ -15,19 +15,23 @@ class ProductController extends Controller
     {
         // Retrieve the 'search' query parameter from the request
         $search = $request->input('search');
-
+    
         // If there is a search query, filter products by 'intitule'
         if ($search) {
             $products = Product::with('category')
-                ->where('intitule', 'like', '%' . $search . '%') // Filter products by name (intitule)
+                ->where('intitule', 'like', '%' . $search . '%')
                 ->paginate(6);
         } else {
             // If no search query, display all products
             $products = Product::with('category')->paginate(6);
         }
-
-        return view('products.index', compact('products', 'search'));
+    
+        // Fetch categories to use in the view
+        $categories = Category::all();  // Retrieve all categories
+    
+        return view('products.index', compact('products', 'search', 'categories'));
     }
+    
 
     // Affiche le formulaire de création de produit
     public function create()
@@ -37,20 +41,28 @@ class ProductController extends Controller
     }
 
     // Traite la soumission du formulaire pour ajouter un produit
-    public function store(ProductRequest $request)
+    public function store(Request $request)
     {
-        $validated = $request->validated();
-        
+        $validated = $request->validate([
+            'intitule' => 'required|string|max:255',
+            'prix' => 'required|numeric',
+            'cat_id' => 'required|exists:categories,id', // Ensure the category ID exists
+            'photo' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Optional photo
+        ]);
+
+        $product = new Product();
+        $product->intitule = $request->input('intitule');
+        $product->prix = $request->input('prix');
+        $product->cat_id = $request->input('cat_id'); // This should properly set the category
         if ($request->hasFile('photo')) {
-            // Store image in 'storage/app/public/images' directory
             $imagePath = $request->file('photo')->store('images', 'public');
-            $validated['image'] = $imagePath;
+            $product->image = $imagePath;
         }
-        
-        Product::create($validated);  // Create the product in the database
-        
-        return redirect()->route('products.index')->with('success', 'Produit ajouté avec succès!');
+        $product->save();
+
+        return redirect()->route('products.index');
     }
+
 
     // Affiche le formulaire d'édition pour un produit spécifique
     public function edit($id)
